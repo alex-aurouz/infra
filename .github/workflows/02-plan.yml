@@ -11,13 +11,15 @@ on:
   #     - main
 
 env:
-  TF_PLANS_FLDR: ./tf-plans
+  # TF_PLANS_FLDR: ./tf-plans
+  TF_PLAN_NAME: tfplan.file
   TF_VERSION: "1.5.6"
   
 jobs:
   code-check:
     runs-on: ubuntu-latest  # windows-latest || macos-latest
     name: actions on PR
+
     steps:
       - uses: actions/checkout@v4
         with:
@@ -43,15 +45,23 @@ jobs:
         run: |
           terraform version
           for dir in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            echo "> CHANGED: $dir"
-            export tf_plan=$(echo $dir | tr '/' '-')
-            echo "tf_plan=$tf_plan"
-            echo "terraform -chdir=$dir plan -out=$TF_PLANS_FLDR/$tf_plan.tfplan"
-            echo "content" > $TF_PLANS_FLDR/$tf_plan.tfplan
+            echo "[CHANGED]: $dir"
+            # export tf_plan=$(echo $dir | tr '/' '-')
+            # echo "tf_plan=$tf_plan"
+            echo "terraform -chdir=$dir plan -var-file ../env.tfvars -out=$TF_PLAN_NAME"
+            # echo "content" > $TF_PLANS_FLDR/$tf_plan.tfplan
           done
+
 
       - name: tf apply
         run: |
-          for tfplan in $(ls $TF_PLANS_FLDR); do
-            echo "terraform apply -auto-approve $TF_PLANS_FLDR/$tfplan"
+          for dir in ${{ steps.changed-files.outputs.all_changed_files }}; do
+            echo "terraform -chdir=$dir apply $TF_PLAN_NAME"
           done
+
+      # - name: tf apply
+      #   run: |
+      #     for tfplan in $(ls $TF_PLANS_FLDR); do
+      #       echo "terraform apply -auto-approve $TF_PLANS_FLDR/$tfplan"
+      #       tf -chdir=vpc apply tfplan
+      #     done
