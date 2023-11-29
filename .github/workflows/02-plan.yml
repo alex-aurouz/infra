@@ -1,6 +1,6 @@
 # This is a basic workflow to help you get started with Actions
 
-name: check-and-validate
+name: plan
 
 # # Controls when the workflow will run
 # on:
@@ -76,7 +76,7 @@ jobs:
           terraform version
           for dir in ${{ steps.changed-files.outputs.all_changed_files }}; do
             echo "> CHANGED: $dir"
-            tf_plan = $(echo $dir | tr '/' '-')
+            export tf_plan = $(echo $dir | tr '/' '-')
             echo "tf_plan=$tf_plan"
             echo "terraform -chdir=$dir fmt"
             echo "terraform -chdir=$dir validate"
