@@ -76,6 +76,7 @@ jobs:
 
       - name: fmt and validate
         run: |
+          terraform version
           for dir in ${{ steps.changed-files.outputs.all_changed_files }}; do
             echo "> CHANGED: $dir"
             echo "terraform -chdir=$dir fmt"
