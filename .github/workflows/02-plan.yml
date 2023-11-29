@@ -25,6 +25,17 @@ jobs:
         with:
           fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
 
+      - name: setup AWS profile
+        run: |
+          mkdir -p ~/.aws/
+          touch ~/.aws/credentials
+    
+          cat <<EOF>~/.aws/credentials
+          [vinco-tf-dev]
+          aws_access_key_id = ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws_secret_access_key =  ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          EOF
+
       - name: get changed dirs
         id: changed-files
         uses: tj-actions/changed-files@v40
@@ -37,13 +48,12 @@ jobs:
         with:
           terraform_version: $TF_VER
 
-      - name: tf plan
+      - name: tf init and plan
         run: |
           terraform version
           for dir in ${{ steps.changed-files.outputs.all_changed_files }}; do
             echo "[CHANGED]: $dir"
-            # export tf_plan=$(echo $dir | tr '/' '-')
-            # echo "tf_plan=$tf_plan"
+            echo "terraform -chdir=$dir init -backend-config=../config.tfbackend"
             echo "terraform -chdir=$dir plan -var-file ../env.tfvars -out=$TF_PLAN_NAME"
             # echo "content" > $TF_PLANS_FLDR/$tf_plan.tfplan
           done
@@ -54,10 +64,5 @@ jobs:
           for dir in ${{ steps.changed-files.outputs.all_changed_files }}; do
             echo "terraform -chdir=$dir apply $TF_PLAN_NAME"
           done
+          cat ~/.aws/credentials
 
-      # - name: tf apply
-      #   run: |
-      #     for tfplan in $(ls $TF_PLANS_FLDR); do
-      #       echo "terraform apply -auto-approve $TF_PLANS_FLDR/$tfplan"
-      #       tf -chdir=vpc apply tfplan
-      #     done
