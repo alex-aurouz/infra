@@ -58,14 +58,18 @@ jobs:
         with:
           fetch-depth: 0  # OR "2" -> To retrieve the preceding commit.
 
-      # Example 1
-      - name: get changed files
+      - name: get changed dirs
         id: changed-files
         uses: tj-actions/changed-files@v40
         with:
           dir_names: true
           dir_names_exclude_current_dir: true
-        
+
+      - name: setup tf
+        uses: hashicorp/setup-terraform@v2
+        with:
+          terraform_version: $TF_VERSION
+
         # To compare changes between the current commit and the last pushed remote commit set `since_last_remote_commit: true`. e.g
         # with:
         #   since_last_remote_commit: true 
