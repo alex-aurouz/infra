@@ -3,12 +3,14 @@ name: plan
 on:
   push:
     branches:
-      - '**'
+      - 'main'
     paths:
       - "**/**/*.tf"
-  # pull_request:
-  #   branches:
-  #     - main
+  pull_request:
+    branches:
+      - main
+    paths:
+      - "**/**/*.tf"
 
 env:
   # TF_PLANS_FLDR: ./tf-plans
@@ -54,15 +56,16 @@ jobs:
           for dir in ${{ steps.changed-files.outputs.all_changed_files }}; do
             echo "[CHANGED]: $dir"
             echo "terraform -chdir=$dir init -backend-config=../config.tfbackend"
-            echo "terraform -chdir=$dir plan -var-file ../env.tfvars -out=$TF_PLAN_NAME"
+            echo "terraform -chdir=$dir plan -no-color -input=false -var-file ../env.tfvars -out=$TF_PLAN_NAME"
             # echo "content" > $TF_PLANS_FLDR/$tf_plan.tfplan
           done
 
 
       - name: tf apply
+        if: github.ref == 'refs/heads/main' && github.event_name == 'push'
         run: |
           for dir in ${{ steps.changed-files.outputs.all_changed_files }}; do
-            echo "terraform -chdir=$dir apply $TF_PLAN_NAME"
+            echo "terraform -chdir=$dir apply -auto-approve $TF_PLAN_NAME"
           done
           cat ~/.aws/credentials
 
