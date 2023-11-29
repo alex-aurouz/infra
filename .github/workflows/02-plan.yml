@@ -39,26 +39,31 @@ jobs:
         run: |
           mkdir -p $TF_PLANS_FLDR
 
-      - name: fmt and validate
+      - name: tf plan
         run: |
           terraform version
           for dir in ${{ steps.changed-files.outputs.all_changed_files }}; do
             echo "> CHANGED: $dir"
             export tf_plan=$(echo $dir | tr '/' '-')
             echo "tf_plan=$tf_plan"
-            echo "terraform -chdir=$dir fmt"
-            echo "terraform -chdir=$dir validate"
             echo "terraform -chdir=$dir plan -out=$TF_PLANS_FLDR/$tf_plan.tfplan"
+            echo "content" > $TF_PLANS_FLDR/$tf_plan.tfplan
           done
 
-      - name: upload-tf-plans
-        uses: actions/upload-artifact@v2
-        with:
-          name: tf-plans
-          path: ./tf-plans
+      # - name: upload-tf-plans
+      #   uses: actions/upload-artifact@v2
+      #   with:
+      #     name: tf-plans
+      #     path: ./tf-plans
 
-      - uses: actions/download-artifact@v2
-        with:
-          name: tf-plans
+      # - uses: actions/download-artifact@v2
+      #   with:
+      #     name: tf-plans
 
       - run: ls -lah .
+
+      - name: tf apply
+        run: |
+          for tfplan in $(ls $TF_PLANS_FLDR); do
+            echo "terraform apply -auto-approve $TF_PLANS_FLDR/$tfplan"
+          done
